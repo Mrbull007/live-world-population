@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Live World Population • 2026</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.5.1/dist/chart.umd.min.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+    body { font-family: 'Inter', system-ui, sans-serif; }
+    .counter { font-variant-numeric: tabular-nums; }
+    .chart-container { position: relative; height: 440px; }
+  </style>
+</head>
+<body class="bg-zinc-950 text-white min-h-screen">
+  <div class="max-w-6xl mx-auto px-6 py-12">
+    <!-- Header -->
+    <div class="flex justify-between items-center mb-12">
+      <div class="flex items-center gap-3">
+        <i class="fa-solid fa-earth-asia text-4xl text-emerald-500"></i>
+        <h1 class="text-4xl font-bold tracking-tight">World Population Live</h1>
+      </div>
+      <a href="https://github.com/YOUR-USERNAME/live-world-population" target="_blank" class="flex items-center gap-2 text-zinc-400 hover:text-white">
+        <i class="fa-brands fa-github text-2xl"></i>
+        <span class="font-medium">GitHub</span>
+      </a>
+    </div>
+
+    <!-- Main Counter -->
+    <div class="bg-zinc-900 rounded-3xl p-10 shadow-2xl border border-zinc-800 text-center mb-12">
+      <p class="text-emerald-400 text-sm font-semibold tracking-[2px] uppercase mb-2">Current World Population</p>
+      <div id="population" class="counter text-8xl md:text-[10rem] font-bold text-white tracking-tighter leading-none mb-4">
+        8,289,847,673
+      </div>
+      <p class="text-zinc-400 text-lg">as of April 2026 • United Nations estimate</p>
+      
+      <div class="mt-10 grid grid-cols-3 gap-8 max-w-md mx-auto">
+        <div class="text-center">
+          <i class="fa-solid fa-baby text-3xl text-emerald-500 mb-2"></i>
+          <p class="text-4xl font-semibold text-emerald-400" id="births">0</p>
+          <p class="text-xs uppercase tracking-widest text-zinc-500">Births today</p>
+        </div>
+        <div class="text-center">
+          <i class="fa-solid fa-skull text-3xl text-red-500 mb-2"></i>
+          <p class="text-4xl font-semibold text-red-400" id="deaths">0</p>
+          <p class="text-xs uppercase tracking-widest text-zinc-500">Deaths today</p>
+        </div>
+        <div class="text-center">
+          <i class="fa-solid fa-arrow-trend-up text-3xl text-amber-500 mb-2"></i>
+          <p class="text-4xl font-semibold text-amber-400" id="net">+2</p>
+          <p class="text-xs uppercase tracking-widest text-zinc-500">Net growth/sec</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Advanced Animated Chart -->
+    <div class="bg-zinc-900 rounded-3xl p-8 mb-12">
+      <div class="flex items-center justify-between mb-6">
+        <h2 class="text-2xl font-semibold flex items-center gap-3">
+          <i class="fa-solid fa-chart-line text-emerald-500"></i>
+          Historical World Population Growth
+        </h2>
+        <div class="text-xs text-zinc-500 flex items-center gap-2">
+          <span class="w-3 h-px bg-emerald-500"></span> Historical
+          <span class="w-3 h-px bg-yellow-400"></span> Projection
+        </div>
+      </div>
+      <div class="chart-container">
+        <canvas id="popChart"></canvas>
+      </div>
+      <p class="text-center text-xs text-zinc-500 mt-4">Hover over points for details • Line draws progressively</p>
+    </div>
+
+    <!-- Info Cards -->
+    <div class="grid md:grid-cols-2 gap-6">
+      <div class="bg-zinc-900 rounded-3xl p-8">
+        <h3 class="text-xl font-semibold mb-6 flex items-center gap-3">
+          <i class="fa-solid fa-info-circle"></i> How it works
+        </h3>
+        <ul class="space-y-4 text-zinc-300">
+          <li class="flex gap-3"><span class="text-emerald-500">•</span> Progressive line drawing animation</li>
+          <li class="flex gap-3"><span class="text-emerald-500">•</span> Staggered point reveals</li>
+          <li class="flex gap-3"><span class="text-emerald-500">•</span> Smooth easing & hover effects</li>
+        </ul>
+      </div>
+
+      <div class="bg-zinc-900 rounded-3xl p-8">
+        <h3 class="text-xl font-semibold mb-6">Future Projections</h3>
+        <div class="space-y-6 text-sm">
+          <div class="flex justify-between"><span>2030</span><span class="font-mono text-emerald-400">8.55 billion</span></div>
+          <div class="flex justify-between"><span>2050</span><span class="font-mono text-emerald-400">9.73 billion</span></div>
+          <div class="flex justify-between"><span>2100</span><span class="font-mono text-emerald-400">10.4 billion</span></div>
+        </div>
+      </div>
+    </div>
+
+    <footer class="mt-16 text-center text-zinc-500 text-sm">
+      Educational project • Data from United Nations & Worldometer
+    </footer>
+  </div>
+
+  <script>
+    // === LIVE COUNTER ===
+    const BASE_POPULATION = 8289847673;
+    const GROWTH_PER_SECOND = 2.2;
+    const birthsPerSecond = 4.3;
+    const deathsPerSecond = 2.1;
+
+    const popEl = document.getElementById('population');
+    const birthsEl = document.getElementById('births');
+    const deathsEl = document.getElementById('deaths');
+    const netEl = document.getElementById('net');
+
+    let startTime = Date.now();
+
+    function updateCounter() {
+      const elapsed = (Date.now() - startTime) / 1000;
+      const current = Math.floor(startPopulation + GROWTH_PER_SECOND * elapsed);
+      popEl.textContent = current.toLocaleString('en-US');
+      birthsEl.textContent = Math.floor(birthsPerSecond * elapsed).toLocaleString('en-US');
+      deathsEl.textContent = Math.floor(deathsPerSecond * elapsed).toLocaleString('en-US');
+      netEl.textContent = `+${Math.floor(GROWTH_PER_SECOND)}`;
+    }
+    setInterval(updateCounter, 50);
+
+    // === ADVANCED ANIMATED CHART ===
+    const ctx = document.getElementById('popChart').getContext('2d');
+
+    const chartData = {
+      labels: ['1950','1960','1970','1980','1990','2000','2010','2020','2025','2026','2030'],
+      datasets: [
+        {
+          label: 'Historical Population',
+          data: [2556000000, 3039000000, 3707000000, 4454000000, 5279000000, 6083000000, 6957000000, 7795000000, 8232000000, 8300000000, null],
+          borderColor: '#10b981',
+          backgroundColor: 'rgba(16, 185, 129, 0.12)',
+          borderWidth: 5,
+          tension: 0.35,
+          pointRadius: 5,
+          pointHoverRadius: 9,
+          pointBackgroundColor: '#10b981',
+          pointBorderColor: '#fff',
+          pointBorderWidth: 2,
+          fill: true
+        },
+        {
+          label: 'Projection',
+          data: [null, null, null, null, null, null, null, null, null, 8300000000, 8550000000],
+          borderColor: '#eab308',
+          borderDash: [6, 4],
+          borderWidth: 4,
+          tension: 0.35,
+          pointRadius: 5,
+          pointHoverRadius: 9,
+          pointBackgroundColor: '#eab308'
+        }
+      ]
+    };
+
+    new Chart(ctx, {
+      type: 'line',
+      data: chartData,
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        interaction: { intersect: false, mode: 'index' },
+
+        // === ADVANCED ANIMATION CONFIG ===
+        animation: {
+          duration: 3200,
+          easing: 'easeOutQuart',
+          delay: (context) => {
+            // Staggered delay for progressive feel
+            let delay = 0;
+            if (context.type === 'data') {
+              delay = context.dataIndex * 80; // points appear with delay
+            }
+            return delay;
+          }
+        },
+
+        // Progressive drawing effect (x-axis animation)
+        animations: {
+          x: {
+            type: 'number',
+            easing: 'easeOutQuart',
+            duration: 2800,
+            from: -1000, // starts off-screen left
+            delay: (ctx) => ctx.dataIndex * 60
+          },
+          y: {
+            type: 'number',
+            easing: 'easeOutQuart',
+            duration: 2200
+          }
+        },
+
+        plugins: {
+          legend: {
+            display: true,
+            position: 'top',
+            align: 'end',
+            labels: { color: '#d1d5db', usePointStyle: true, padding: 22, font: { size: 13 } }
+          },
+          tooltip: {
+            backgroundColor: '#18181b',
+            titleColor: '#a1a1aa',
+            bodyColor: '#fff',
+            padding: 14,
+            displayColors: true,
+            callbacks: {
+              label: (context) => ' ' + (context.raw / 1000000000).toFixed(2) + ' Billion people'
+            }
+          }
+        },
+        scales: {
+          x: {
+            grid: { color: '#27272a', lineWidth: 0.5 },
+            ticks: { color: '#a1a1aa', font: { size: 12 } }
+          },
+          y: {
+            min: 2000000000,
+            max: 9000000000,
+            grid: { color: '#27272a', lineWidth: 0.5 },
+            ticks: {
+              color: '#a1a1aa',
+              font: { size: 12 },
+              callback: (value) => (value / 1000000000).toFixed(1) + 'B'
+            }
+          }
+        },
+        elements: {
+          line: { borderJoinStyle: 'round' },
+          point: {
+            hoverBorderWidth: 3,
+            hoverBorderColor: '#fff'
+          }
+        }
+      }
+    });
+
+    tailwind.config = { content: ["./index.html"] };
+  </script>
+</body>
+</html>
