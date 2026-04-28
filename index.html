@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Live World Population • 2026</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+    body { font-family: 'Inter', system-ui, sans-serif; }
+    .counter { font-variant-numeric: tabular-nums; }
+  </style>
+</head>
+<body class="bg-zinc-950 text-white min-h-screen">
+  <div class="max-w-6xl mx-auto px-6 py-12">
+    <!-- Header -->
+    <div class="flex justify-between items-center mb-12">
+      <div class="flex items-center gap-3">
+        <i class="fa-solid fa-earth-asia text-4xl text-emerald-500"></i>
+        <h1 class="text-4xl font-bold tracking-tight">World Population Live</h1>
+      </div>
+      <a href="https://github.com/YOUR-USERNAME/live-world-population" 
+         target="_blank"
+         class="flex items-center gap-2 text-zinc-400 hover:text-white transition">
+        <i class="fa-brands fa-github text-2xl"></i>
+        <span class="font-medium">GitHub</span>
+      </a>
+    </div>
+
+    <!-- Main Counter -->
+    <div class="bg-zinc-900 rounded-3xl p-10 shadow-2xl border border-zinc-800 text-center mb-12">
+      <p class="text-emerald-400 text-sm font-semibold tracking-[2px] uppercase mb-2">Current World Population</p>
+      <div id="population" class="counter text-8xl md:text-[10rem] font-bold text-white tracking-tighter leading-none mb-4">
+        8,289,847,673
+      </div>
+      <p class="text-zinc-400 text-lg">as of April 2026 • United Nations estimate</p>
+      
+      <div class="mt-10 grid grid-cols-3 gap-8 max-w-md mx-auto">
+        <div class="text-center">
+          <i class="fa-solid fa-baby text-3xl text-emerald-500 mb-2"></i>
+          <p class="text-4xl font-semibold text-emerald-400" id="births">0</p>
+          <p class="text-xs uppercase tracking-widest text-zinc-500">Births today</p>
+        </div>
+        <div class="text-center">
+          <i class="fa-solid fa-skull text-3xl text-red-500 mb-2"></i>
+          <p class="text-4xl font-semibold text-red-400" id="deaths">0</p>
+          <p class="text-xs uppercase tracking-widest text-zinc-500">Deaths today</p>
+        </div>
+        <div class="text-center">
+          <i class="fa-solid fa-arrow-trend-up text-3xl text-amber-500 mb-2"></i>
+          <p class="text-4xl font-semibold text-amber-400" id="net">+2</p>
+          <p class="text-xs uppercase tracking-widest text-zinc-500">Net growth/sec</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Info Cards -->
+    <div class="grid md:grid-cols-2 gap-6">
+      <div class="bg-zinc-900 rounded-3xl p-8">
+        <h3 class="text-xl font-semibold mb-6 flex items-center gap-3">
+          <i class="fa-solid fa-info-circle"></i> How it works
+        </h3>
+        <ul class="space-y-4 text-zinc-300">
+          <li class="flex gap-3"><span class="text-emerald-500">•</span> Based on latest UN World Population Prospects 2024 Revision</li>
+          <li class="flex gap-3"><span class="text-emerald-500">•</span> Real-time increment: ~2.2 people per second</li>
+          <li class="flex gap-3"><span class="text-emerald-500">•</span> Growth rate 2026: 0.84% per year (~69 million/year)</li>
+          <li class="flex gap-3"><span class="text-emerald-500">•</span> Pure HTML + JavaScript (no API key needed)</li>
+        </ul>
+      </div>
+
+      <div class="bg-zinc-900 rounded-3xl p-8">
+        <h3 class="text-xl font-semibold mb-6">Projection</h3>
+        <div class="space-y-6">
+          <div class="flex justify-between items-center">
+            <span>2030</span>
+            <span class="font-mono text-emerald-400">8.55 billion</span>
+          </div>
+          <div class="flex justify-between items-center">
+            <span>2050</span>
+            <span class="font-mono text-emerald-400">9.73 billion</span>
+          </div>
+          <div class="flex justify-between items-center">
+            <span>2100</span>
+            <span class="font-mono text-emerald-400">10.4 billion (medium variant)</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <footer class="mt-16 text-center text-zinc-500 text-sm">
+      Data source: United Nations &amp; Worldometer methodology • 
+      This is an educational estimate • 
+      <a href="https://www.worldometers.info/world-population/" target="_blank" class="underline">Live reference</a>
+    </footer>
+  </div>
+
+  <script>
+    // === CONFIG ===
+    const BASE_POPULATION = 8289847673;     // April 28, 2026 value
+    const GROWTH_PER_SECOND = 2.2;          // ~69 million / year
+
+    // DOM elements
+    const popEl = document.getElementById('population');
+    const birthsEl = document.getElementById('births');
+    const deathsEl = document.getElementById('deaths');
+    const netEl = document.getElementById('net');
+
+    // Start values
+    let startTime = Date.now();
+    let startPopulation = BASE_POPULATION;
+
+    // Births & deaths (approximate daily rates)
+    let birthsToday = 0;
+    let deathsToday = 0;
+    const birthsPerSecond = 4.3;
+    const deathsPerSecond = 2.1;
+
+    function updateCounter() {
+      const elapsedSeconds = (Date.now() - startTime) / 1000;
+      const currentPopulation = Math.floor(startPopulation + GROWTH_PER_SECOND * elapsedSeconds);
+      
+      // Update main counter with commas
+      popEl.textContent = currentPopulation.toLocaleString('en-US');
+
+      // Live births & deaths today
+      birthsToday = Math.floor(birthsPerSecond * elapsedSeconds);
+      deathsToday = Math.floor(deathsPerSecond * elapsedSeconds);
+      
+      birthsEl.textContent = birthsToday.toLocaleString('en-US');
+      deathsEl.textContent = deathsToday.toLocaleString('en-US');
+      netEl.textContent = `+${Math.floor(GROWTH_PER_SECOND)}`;
+    }
+
+    // Update every 50ms for smooth feel
+    setInterval(updateCounter, 50);
+
+    // Tailwind script
+    tailwind.config = {
+      content: ["./index.html"],
+      theme: { extend: {} }
+    };
+  </script>
+</body>
+</html>
